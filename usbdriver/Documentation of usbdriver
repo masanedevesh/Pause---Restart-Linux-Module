@@ -1,0 +1,29 @@
+ 
+
+
+
+ The usual steps for  Linux usbdevice driver may be repeated with the above code, along with the pen drive steps
+
+1. Build the driver (pen_driver.ko) by running make.
+2. Load the driver using insmod pen_driver.ko.
+3. Plug in the pen drive (after making sure that the usb-storage driver is not already loaded).
+4. Check for the dynamic creation of /dev/pen0 (0 being the minor number obtained — check dmesg logs for the value on your system).
+5. Possibly try some write/read on /dev/pen0 (you most likely will get a connection timeout and/or broken pipe errors, because of 
+   non-conforming SCSI commands).
+6. Unplug the pen drive and look for /dev/pen0 to be gone.
+7. Unload the driver using rmmod pen_driver.
+
+
+Notes
+
+1. Make sure that you replace the vendor id & device id in the above code examples by the ones of your pen drive. Also, make sure that 
+   the endpoint numbers used in the above code examples match the endpoint numbers of your pen drive. Otherwise, you may get an error like “… bulk message returned error 22 – Invalid argument …”, while reading from pen device.
+
+2. Also, make sure that the driver from the previous article is unloaded, i.e. pen_info is not loaded. Otherwise, it may give an error 
+   message “insmod: error inserting ‘pen_driver.ko’: -1 Device or resource busy”, while doing insmod pen_driver.ko.
+
+3. One may wonder, as how does the usb-storage get autoloaded. The answer lies in the module autoload rules written down in the file 
+   /lib/modules/<kernel_version>/modules.usbmap. If you are an expert, you may comment out the corresponding line, for it to not get autoloaded. And uncomment it back, once you are done with your experiments.
+
+4. In latest distros, you may not find the detailed description of the USB devices using cat /proc/bus/usb/devices, as the /proc/bus/usb/ 
+   itself has been deprecated. You can find the same detailed info using cat /sys/kernel/debug/usb/devices – though you may need root permissions for the same. Also, if you do not see any file under /sys/kernel/debug (even as root), then you may have to first mount the debug filesystem, as follows: mount -t debugfs none /sys/kernel/debug.
