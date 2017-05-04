@@ -47,6 +47,19 @@ The procedure is:
 .
 .
 
+
+CRIU Limitations
+
+One of the most obvious and hardest requirements for using CRIU is that used libraries (on the source and destination system) of the checkpointed and restored process must be exactly the same. The libraries are not newly loaded on the destination system of the restore. The restored binary expects all library provided functions to be at the (exact) same memory address as before. If a used library function is at a different memory location – the restored process will crash. Although this sounds like a severe restriction… it is not as fatal as it sounds. For example, when using CRIU to migrate a container (i.e. a “fancy process”) the container will often include not only the actual application to be migrated – it will also include the required libraries.
+
+Another limitation of note: CRIU cannot (currently) be used to migrate applications which are directly accessing hardware through ioctl(). If such an application needs to be checkpointed and restarted or migrated CRIU provides an interface to create plugins which can be used to extract the state of the hardware on the source system and then put the hardware back into the same state during restore.
+
+It is also important to remember that it is not possible to checkpoint processes which are already being ptrace’d (e.g., gdb, strace).
+.
+.
+.
+.
+.
   
 2)The USB device driver:
 
@@ -60,6 +73,7 @@ The usual steps for  Linux usbdevice driver may be repeated with the above code,
    non-conforming SCSI commands).
 6. Unplug the pen drive and look for /dev/pen0 to be gone.
 7. Unload the driver using rmmod pen_driver.
+
 
 
 Notes
@@ -76,10 +90,4 @@ Notes
 4. In latest distros, you may not find the detailed description of the USB devices using cat /proc/bus/usb/devices, as the /proc/bus/usb/ 
    itself has been deprecated. You can find the same detailed info using cat /sys/kernel/debug/usb/devices – though you may need root permissions for the same. Also, if you do not see any file under /sys/kernel/debug (even as root), then you may have to first mount the debug filesystem, as follows: mount -t debugfs none /sys/kernel/debug.
    
-   CRIU Limitations
-
-One of the most obvious and hardest requirements for using CRIU is that used libraries (on the source and destination system) of the checkpointed and restored process must be exactly the same. The libraries are not newly loaded on the destination system of the restore. The restored binary expects all library provided functions to be at the (exact) same memory address as before. If a used library function is at a different memory location – the restored process will crash. Although this sounds like a severe restriction… it is not as fatal as it sounds. For example, when using CRIU to migrate a container (i.e. a “fancy process”) the container will often include not only the actual application to be migrated – it will also include the required libraries.
-
-Another limitation of note: CRIU cannot (currently) be used to migrate applications which are directly accessing hardware through ioctl(). If such an application needs to be checkpointed and restarted or migrated CRIU provides an interface to create plugins which can be used to extract the state of the hardware on the source system and then put the hardware back into the same state during restore.
-
-It is also important to remember that it is not possible to checkpoint processes which are already being ptrace’d (e.g., gdb, strace).
+   
